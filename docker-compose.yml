@@ -6,13 +6,26 @@ services:
     container_name: docker-mysql
     environment:
       MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: school
+      TZ: Asia/Tokyo
     volumes:
       - type: bind
-        source: ./my.cnf
+        source: ./db/my.cnf
         target: /etc/mysql/conf.d/my.cnf
       - type: bind
-        source: ./init.sql
+        source: ./db/data/
+        target: /var/lib/mysql
+      - type: bind
+        source: ./db/init.sql
         target: /docker-entrypoint-initdb.d/init.sql
     ports:
       - "3306:3306"
+  tbls:
+    image: ghcr.io/k1low/tbls:latest
+    volumes:
+      - type: bind
+        source: ./doc
+        target: /doc
+    depends_on:
+      - mysql
+    restart: on-failure
+    entrypoint: tbls doc --config=/doc/.tbls.yml --rm-dist
